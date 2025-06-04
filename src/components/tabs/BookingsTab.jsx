@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Calendar, PawPrint, Clock, DollarSign } from 'lucide-react';
 
 export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, currentUser }) {
-  const getWalkerById = (id) => walkers.find(w => w.id === id);
-  const getPetById = (id) => pets.find(p => p.id === id);
+  const getWalkerById = (id) => walkers.find((w) => w.id === id);
+  const getPetById = (id) => pets.find((p) => p.id === id);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -41,41 +41,50 @@ export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, c
           <div className="w-32 h-32 bg-gradient-to-r from-green-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Calendar className="w-16 h-16 text-primary" />
           </div>
-          <h3 className="text-2xl font-bold text-foreground/80 mb-4">Inicia sesión para ver tus reservas</h3>
-          <p className="text-foreground/70">Una vez que inicies sesión, podrás ver el historial de tus reservas aquí.</p>
+          <h3 className="text-2xl font-bold text-foreground/80 mb-4">
+            Inicia sesión para ver tus reservas
+          </h3>
+          <p className="text-foreground/70">Una vez que inicies sesión, podrás ver el historial aquí.</p>
         </div>
       ) : bookings.length === 0 ? (
         <div className="text-center py-20 bg-card/50 rounded-2xl">
-           <div className="w-32 h-32 bg-gradient-to-r from-green-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-32 h-32 bg-gradient-to-r from-green-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Calendar className="w-16 h-16 text-primary" />
           </div>
-          <h3 className="text-2xl font-bold text-foreground/80 mb-4">No tienes reservas</h3>
-          <p className="text-foreground/70">Cuando hagas una reserva, aparecerá aquí</p>
+          <h3 className="text-2xl font-bold text-foreground/80 mb-4">
+            No tienes reservas
+          </h3>
+          <p className="text-foreground/70">Cuando hagas una reserva, aparecerá aquí.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {bookings.map((booking) => {
+          {bookings.map((booking, index) => {
             const walker = getWalkerById(booking.walkerId);
             const pet = getPetById(booking.petId);
 
             return (
               <motion.div
                 key={booking.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
                 className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
               >
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-2">
-                      <h3 className="text-lg font-bold text-foreground mr-3">
+                  {/* Info principal */}
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-foreground">
                         {walker?.name || 'Cuidador no encontrado'}
                       </h3>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${getStatusColor(booking.status)}`}
+                      >
                         {getStatusText(booking.status)}
                       </span>
                     </div>
 
+                    {/* Datos del paseo */}
                     <div className="grid md:grid-cols-2 gap-4 text-sm text-foreground/80">
                       <div className="space-y-2">
                         <div className="flex items-center">
@@ -99,6 +108,7 @@ export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, c
                       </div>
                     </div>
 
+                    {/* Servicio y notas */}
                     {booking.service && (
                       <div className="mt-3">
                         <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
@@ -106,7 +116,6 @@ export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, c
                         </span>
                       </div>
                     )}
-
                     {booking.notes && (
                       <div className="mt-3 p-3 bg-muted/50 rounded-lg">
                         <p className="text-sm text-foreground/90">
@@ -116,20 +125,23 @@ export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, c
                     )}
                   </div>
 
+                  {/* Acciones */}
                   {booking.status === 'pending' && (
                     <div className="flex gap-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-red-600 hover:bg-red-50 border-red-300 hover:border-red-400"
+                        className="text-red-600 hover:bg-red-50 border-red-300 hover:border-red-400 transition"
                         onClick={() => onUpdateStatus(booking.id, 'cancelled')}
+                        aria-label="Cancelar reserva"
                       >
                         Cancelar
                       </Button>
                       <Button
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-green-600 hover:bg-green-700 text-white transition"
                         onClick={() => onUpdateStatus(booking.id, 'confirmed')}
+                        aria-label="Confirmar reserva"
                       >
                         Confirmar
                       </Button>
