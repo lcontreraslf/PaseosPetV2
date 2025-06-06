@@ -1,91 +1,60 @@
+// src/App.jsx
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"; // Se mantiene si se usa en los mensajes de acceso denegado
 import NotificationManager from "@/components/layout/NotificationManager";
 import { toast } from "@/components/ui/use-toast";
-import { User, PawPrint, LogIn } from "lucide-react";
+// Iconos User, PawPrint, LogIn ya no son necesarios si no se usan directamente en App.jsx
+// import { User, PawPrint, LogIn } from "lucide-react";
+
 import HomeTab from "@/components/tabs/HomeTab";
-import PetsTab from "@/components/tabs/PetsTab";
+// PetsTab ya NO es una pestaña principal. Ahora es una sección del DashboardUser.
+// import PetsTab from "@/components/tabs/PetsTab";
 import WalkersTab from "@/components/tabs/WalkersTab";
-import BookingsTab from "@/components/tabs/BookingsTab";
+import PetSittersTab from "@/components/tabs/PetSittersTab";
+import BookingsTab from "@/components/tabs/BookingsTab"; // Se mantiene por ahora, si el dashboard lo usa internamente.
+
 import AddPetModal from "@/components/modals/AddPetModal";
 import BookingModal from "@/components/modals/BookingModal";
 import LoginModal from "@/components/modals/LoginModal";
 import RegisterModal from "@/components/modals/RegisterModal";
 import Header from "@/components/layout/Header";
-import PetDataManager from '@/components/logic/PetDataManager';
-import BookingDataManager from '@/components/logic/BookingDataManager';
+
+// Importa DashboardUser desde su nueva ubicación en 'views'
+import DashboardUser from "@/components/views/DashboardUser"; // ¡IMPORTACIÓN ACTUALIZADA A views!
+
+// PetDataManager y BookingDataManager pueden ser removidos si sus respectivas
+// pestañas/componentes ya gestionan su propio localStorage o fetching de datos.
+// Si aún se usan en App.jsx para pasar props, se mantienen.
+// Basado en las últimas refactorizaciones, probablemente ya no son necesarios en App.jsx.
+// import PetDataManager from '@/components/logic/PetDataManager';
+// import BookingDataManager from '@/components/logic/BookingDataManager';
+
 
 function App() {
   const [activeTab, setActiveTab] = useState("home");
-  const [pets, setPets] = useState([]);
-  const [walkers, setWalkers] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [showAddPet, setShowAddPet] = useState(false);
-  const [showBooking, setShowBooking] = useState(false);
-  const [selectedWalker, setSelectedWalker] = useState(null);
+  const [pets, setPets] = useState([]); // Necesario para pasar a DashboardUser
+  const [bookings, setBookings] = useState([]); // Necesario para pasar a DashboardUser
+  const [showAddPet, setShowAddPet] = useState(false); // Necesario si AddPetModal se abre desde App
+  const [showBooking, setShowBooking] = useState(false); // Necesario si BookingModal se abre desde App
+  const [selectedWalker, setSelectedWalker] = useState(null); // Necesario para BookingModal
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
+  // Lógica para cargar pets, bookings, currentUser de localStorage al iniciar App
   useEffect(() => {
     const savedPets = localStorage.getItem("petcare_pets");
-    const savedWalkers = localStorage.getItem("petcare_walkers");
     const savedBookings = localStorage.getItem("petcare_bookings");
     const savedUser = localStorage.getItem("petcare_user");
 
     if (savedPets) setPets(JSON.parse(savedPets));
-    if (savedWalkers) setWalkers(JSON.parse(savedWalkers));
     if (savedBookings) setBookings(JSON.parse(savedBookings));
     if (savedUser) setCurrentUser(JSON.parse(savedUser));
-
-    if (!savedWalkers || JSON.parse(savedWalkers).length === 0) {
-      const initialWalkers = [
-        {
-          id: 1,
-          name: "María González",
-          rating: 4.9,
-          experience: "3 años",
-          price: 15,
-          location: "Centro",
-          services: ["Paseos", "Cuidado en casa", "Alimentación"],
-          avatar:
-            "https://images.unsplash.com/photo-1494790108375-2616b612b786?w=150&h=150&fit=crop&crop=face",
-          reviews: 127,
-          verified: true,
-        },
-        {
-          id: 2,
-          name: "Carlos Ruiz",
-          rating: 4.8,
-          experience: "5 años",
-          price: 18,
-          location: "Norte",
-          services: ["Paseos", "Entrenamiento", "Veterinario"],
-          avatar:
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-          reviews: 89,
-          verified: true,
-        },
-        {
-          id: 3,
-          name: "Ana López",
-          rating: 5.0,
-          experience: "2 años",
-          price: 12,
-          location: "Sur",
-          services: ["Paseos", "Cuidado en casa"],
-          avatar:
-            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-          reviews: 156,
-          verified: true,
-        },
-      ];
-      setWalkers(initialWalkers);
-      localStorage.setItem("petcare_walkers", JSON.stringify(initialWalkers));
-    }
   }, []);
 
+  // Efectos para guardar en localStorage cuando los estados cambian
   useEffect(() => {
     localStorage.setItem("petcare_pets", JSON.stringify(pets));
   }, [pets]);
@@ -102,11 +71,14 @@ function App() {
     }
   }, [currentUser]);
 
+  // Funciones de gestión de datos que afectan estados globales (pets, bookings)
+  // Se mantienen aquí en App.jsx como fuente de verdad.
   const addPet = (petData) => {
     const newPet = {
       id: Date.now(),
       ...petData,
       createdAt: new Date().toISOString(),
+      userId: currentUser?.id, // Asegura que la mascota se asocie al usuario
     };
     setPets([...pets, newPet]);
     setShowAddPet(false);
@@ -158,9 +130,7 @@ function App() {
     );
     toast({
       title: "Estado actualizado",
-      description: `La reserva ha sido ${
-        status === "confirmed" ? "confirmada" : "cancelada"
-      }.`,
+      description: `La reserva ha sido ${status === "confirmed" ? "confirmada" : "cancelada"}.`,
     });
   };
 
@@ -178,26 +148,10 @@ function App() {
     });
   };
 
-  const handleRegister = (userData) => {
-    const user = {
-      id: Date.now(),
-      email: userData.email,
-      name: userData.name,
-    };
-    setCurrentUser(user);
-    setShowRegister(false);
-    setShowLogin(false);
-    toast({
-      title: `¡Bienvenido, ${user.name}!`,
-      description: "Tu cuenta ha sido creada correctamente.",
-    });
-  };
-
   const handleGoogleLogin = () => {
     toast({
       title: "Conexión con Supabase pendiente",
-      description:
-        "La integración con Supabase no está completa. Por favor, sigue los pasos para conectar tu cuenta de Supabase.",
+      description: "La integración con Supabase no está completa. Por favor, sigue los pasos para conectar tu cuenta.",
       variant: "destructive",
     });
   };
@@ -210,18 +164,22 @@ function App() {
     });
   };
 
+  // Definición de los ítems de navegación principales
   const navItems = [
     { id: "home", label: "Inicio" },
-    { id: "pets", label: "Mis Mascotas" },
-    { id: "walkers", label: "Cuidadores" },
-    { id: "bookings", label: "Reservas" },
+    // { id: "pets", label: "Mis Mascotas" }, // ¡ELIMINADA DE LA NAVEGACIÓN PRINCIPAL!
+    { id: "dogwalkers", label: "Paseadores" },
+    { id: "caregivers", label: "Cuidadores" },
+    { id: "bookings", label: "Reservas" }, // Se mantiene en el nav principal si es una vista general de reservas
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <NotificationManager currentUser={currentUser} />
-      <PetDataManager pets={pets} setPets={setPets} />
-      <BookingDataManager bookings={bookings} setBookings={setBookings} />
+      {/* DataManagers ya no deberían ser componentes, sino hooks o funciones directas */}
+      {/* <PetDataManager pets={pets} setPets={setPets} /> */}
+      {/* <BookingDataManager bookings={bookings} setBookings={setBookings} /> */}
+
       <Header
         navItems={navItems}
         activeTab={activeTab}
@@ -230,22 +188,19 @@ function App() {
         setShowLogin={setShowLogin}
         setShowRegister={setShowRegister}
         handleLogout={handleLogout}
+        // Nuevo prop para navegar al dashboard desde el Header (al hacer clic en el perfil)
+        onNavigateToDashboard={() => setActiveTab("dashboard")}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AnimatePresence mode="wait">
-          {activeTab === "home" && (
-            <HomeTab
-              key="home"
-              onFindWalkerClick={() => setActiveTab("walkers")}
-            />
-          )}
-          {activeTab === "pets" && (
+          {activeTab === "home" && <HomeTab key="home" onFindWalkerClick={() => setActiveTab("dogwalkers")} />}
+
+          {/* Antiguo renderizado de PetsTab como pestaña principal - ELIMINADO */}
+          {/* {activeTab === "pets" && (
             <PetsTab
               key="pets"
-              pets={pets.filter(
-                (p) => !currentUser || p.userId === currentUser.id
-              )}
+              pets={pets.filter((p) => !currentUser || p.userId === currentUser.id)}
               onAddPet={() => {
                 if (!currentUser) {
                   setShowLogin(true);
@@ -256,14 +211,12 @@ function App() {
               onDeletePet={deletePet}
               currentUser={currentUser}
             />
-          )}
-          {activeTab === "walkers" && (
+          )} */}
+
+          {activeTab === "dogwalkers" && (
             <WalkersTab
-              key="walkers"
-              walkers={walkers}
-              pets={pets.filter(
-                (p) => !currentUser || p.userId === currentUser.id
-              )}
+              key="dogwalkers"
+              pets={pets.filter((p) => !currentUser || p.userId === currentUser.id)}
               onSelectWalker={(walker) => {
                 if (!currentUser) {
                   setShowLogin(true);
@@ -275,21 +228,70 @@ function App() {
               currentUser={currentUser}
             />
           )}
+          {activeTab === "caregivers" && (
+            <PetSittersTab
+              key="caregivers"
+              pets={pets.filter((p) => !currentUser || p.userId === currentUser.id)}
+              onSelectPetSitter={(sitter) => {
+                if (!currentUser) {
+                  setShowLogin(true);
+                  return;
+                }
+                setSelectedWalker(sitter);
+                setShowBooking(true);
+              }}
+              currentUser={currentUser}
+            />
+          )}
           {activeTab === "bookings" && (
             <BookingsTab
               key="bookings"
-              bookings={bookings.filter(
-                (b) => !currentUser || b.userId === currentUser.id
-              )}
-              walkers={walkers}
+              bookings={bookings.filter((b) => !currentUser || b.userId === currentUser.id)}
+              // Nota: los walkers aquí podrían ser un problema si BookingTab los necesita todos.
+              // En un futuro, BookingTab debería obtener la información del paseador/cuidador
+              // a través del ID de la reserva, o de un contexto global de datos.
+              walkers={[]}
               pets={pets}
               onUpdateStatus={updateBookingStatus}
               currentUser={currentUser}
             />
           )}
+
+          {/* Nuevo: Renderizado del DashboardUser cuando activeTab es "dashboard" */}
+          {activeTab === "dashboard" && currentUser && (
+            <DashboardUser
+              key="dashboard"
+              currentUser={currentUser}
+              pets={pets} // Se pasa el estado completo de las mascotas de App.jsx
+              setPets={setPets} // Se pasa el setter de mascotas
+              bookings={bookings} // Se pasa el estado completo de las reservas de App.jsx
+              setBookings={setBookings} // Se pasa el setter de reservas
+              // También se pasan las funciones y estados necesarios para los modales que abre el Dashboard
+              showAddPet={showAddPet}
+              setShowAddPet={setShowAddPet}
+              addPet={addPet} // Pasamos la función addPet desde App.jsx
+              deletePet={deletePet} // Pasamos la función deletePet desde App.jsx
+              // Si el BookingModal se abre desde el Dashboard, necesitará estas props:
+              // onSelectWalker={onSelectWalker}
+              // setShowBooking={setShowBooking}
+              // selectedWalker={selectedWalker}
+              // createBooking={createBooking}
+              // updateBookingStatus={updateBookingStatus}
+            />
+          )}
+          {/* Mensaje si el usuario no está logueado y intenta acceder al dashboard */}
+          {activeTab === "dashboard" && !currentUser && (
+            <div className="text-center py-20 text-foreground/70">
+              <h2 className="text-3xl font-bold mb-4">Acceso Denegado</h2>
+              <p className="mb-6">Por favor, inicia sesión para acceder a tu dashboard.</p>
+              <Button onClick={() => setShowLogin(true)}>Iniciar Sesión</Button>
+            </div>
+          )}
         </AnimatePresence>
       </main>
 
+      {/* Los modales se mantienen aquí en App.jsx si se abren desde varias pestañas
+          o si necesitan acceder a estados y funciones globales de App.jsx */}
       <AnimatePresence>
         {showAddPet && currentUser && (
           <AddPetModal
@@ -322,8 +324,7 @@ function App() {
         {showRegister && !currentUser && (
           <RegisterModal
             onClose={() => setShowRegister(false)}
-            onRegister={handleRegister}
-            onGoogleRegister={handleGoogleLogin}
+            onGoogleLogin={handleGoogleLogin}
             onSwitchToLogin={() => {
               setShowRegister(false);
               setShowLogin(true);

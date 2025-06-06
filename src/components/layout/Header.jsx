@@ -1,9 +1,14 @@
+// src/components/layout/Header.jsx
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PawPrint, LogIn, User, Menu, X } from 'lucide-react';
+import { PawPrint, LogIn, Menu, X } from 'lucide-react'; // 'User' ya no es necesario aquí directamente
 import { Button } from '@/components/ui/button';
 
-export default function Header({ navItems, activeTab, setActiveTab, currentUser, setShowLogin, setShowRegister, handleLogout }) {
+import UserProfileNav from '@/components/layout/UserProfileNav'; // ¡IMPORTAMOS EL NUEVO COMPONENTE DE NAVEGACIÓN DE PERFIL!
+
+// Se añade onNavigateToDashboard para la navegación al Dashboard
+export default function Header({ navItems, activeTab, setActiveTab, currentUser, setShowLogin, setShowRegister, handleLogout, onNavigateToDashboard }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -12,9 +17,10 @@ export default function Header({ navItems, activeTab, setActiveTab, currentUser,
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <motion.div
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 cursor-pointer" // Añadido cursor-pointer
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            onClick={() => setActiveTab("home")} // Al hacer clic en el logo, va a Home
           >
             <div className="w-10 h-10 bg-gradient-to-r from-primary to-green-600 rounded-full flex items-center justify-center">
               <PawPrint className="w-6 h-6 text-primary-foreground" />
@@ -41,32 +47,33 @@ export default function Header({ navItems, activeTab, setActiveTab, currentUser,
             ))}
           </nav>
 
-          {/* Desktop Auth Buttons */}
-          {currentUser ? (
-            <Button
-              onClick={handleLogout}
-              className="hidden md:inline-flex bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white"
-            >
-              <User className="w-4 h-4 mr-2" />
-              {currentUser.name} (Salir)
-            </Button>
-          ) : (
-            <div className="hidden md:flex space-x-2">
-              <Button
-                onClick={() => setShowRegister(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md"
-              >
-                Registrarse
-              </Button>
-              <Button
-                onClick={() => setShowLogin(true)}
-                className="bg-gradient-to-r from-primary to-green-600 hover:from-green-600 hover:to-green-700 text-primary-foreground"
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                Iniciar Sesión
-              </Button>
-            </div>
-          )}
+          {/* Desktop Auth/Profile Buttons */}
+          <div className="hidden md:flex space-x-2 items-center"> {/* Añadido items-center para alinear */}
+            {currentUser ? (
+              // Usar el nuevo componente UserProfileNav cuando el usuario está conectado
+              <UserProfileNav
+                currentUser={currentUser}
+                handleLogout={handleLogout}
+                onNavigateToDashboard={onNavigateToDashboard} // Pasa la función para navegar al dashboard
+              />
+            ) : (
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => setShowRegister(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md"
+                >
+                  Registrarse
+                </Button>
+                <Button
+                  onClick={() => setShowLogin(true)}
+                  className="bg-gradient-to-r from-primary to-green-600 hover:from-green-600 hover:to-green-700 text-primary-foreground"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Iniciar Sesión
+                </Button>
+              </div>
+            )}
+          </div>
 
           {/* Hamburger Button */}
           <button
@@ -105,13 +112,30 @@ export default function Header({ navItems, activeTab, setActiveTab, currentUser,
             ))}
 
             {currentUser ? (
-              <Button
-                onClick={handleLogout}
-                className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white mt-4"
-              >
-                <User className="w-4 h-4 mr-2" />
-                Cerrar Sesión
-              </Button>
+              // Menú móvil del perfil cuando el usuario está conectado
+              <>
+                <button
+                  onClick={() => {
+                    onNavigateToDashboard(); // Navegar al dashboard
+                    setMobileMenuOpen(false); // Cerrar menú móvil
+                  }}
+                  className={`block w-full text-left text-sm px-3 py-2 rounded-md ${
+                    activeTab === 'dashboard' ? 'text-primary bg-green-100' : 'text-foreground/70 hover:text-primary'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-2 inline-block" /> Mi Dashboard
+                </button>
+                <Button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white mt-4"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Cerrar Sesión
+                </Button>
+              </>
             ) : (
               <>
                 <Button

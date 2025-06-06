@@ -1,74 +1,54 @@
+// src/components/tabs/PetsTab.jsx
+
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PawPrint, PlusCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PawPrint, PlusCircle } from 'lucide-react';
+import PetCard from '@/components/common/PetCard';
 
-const PetsTab = ({ pets, onAddPet, onDeletePet, currentUser }) => {
+// Aceptar el nuevo prop isDashboardSection y las funciones directamente
+export default function PetsTab({ pets, onAddPet, onDeletePet, currentUser, isDashboardSection = false }) {
+
   return (
     <motion.div
-      key="pets"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      // Cuando PetsTab es una sección del Dashboard, no necesita su propio padding o título.
+      // Las clases de padding se manejarán en el DashboardUser.jsx
+      className={isDashboardSection ? "" : "space-y-6"} // Si es dashboard, no aplica este padding principal
     >
-      {/* Encabezado */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground">
-          <PawPrint className="w-6 h-6 text-green-600" />
+      <div className={isDashboardSection ? "hidden" : "flex justify-between items-center mb-4"}>
+        {/* Ocultar el título principal y el botón de añadir si es parte del Dashboard */}
+        <h2 className="text-3xl font-bold text-foreground flex items-center">
+          <PawPrint className="w-7 h-7 mr-2 text-primary" />
           Mis Mascotas
         </h2>
         <Button
           onClick={onAddPet}
-          className="bg-green-600 text-white hover:bg-green-700 transition"
+          className="bg-primary hover:bg-primary-dark text-primary-foreground"
         >
           <PlusCircle className="w-4 h-4 mr-2" />
           Agregar Mascota
         </Button>
       </div>
 
-      {/* Lista de Mascotas */}
       {pets.length === 0 ? (
-        <p className="text-muted-foreground">No tienes mascotas registradas aún.</p>
+        <p className="text-foreground/70 text-center py-8 border border-dashed border-border rounded-lg">
+          No tienes mascotas registradas. ¡Agrega la primera!
+        </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {pets.map((pet, index) => (
-            <motion.div
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {pets.map((pet) => (
+            <PetCard
               key={pet.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
-              className="bg-card/70 backdrop-blur-sm border border-border rounded-2xl p-5 shadow-md hover:shadow-xl transition-all"
-            >
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-primary">
-                  {pet.name}
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    // if (confirm('¿Estás seguro de eliminar esta mascota?')) {
-                    onDeletePet(pet.id);
-                    // }
-                  }}
-                  className="text-red-500 hover:text-red-700"
-                  aria-label={`Eliminar ${pet.name}`}
-                >
-                  <XCircle className="w-5 h-5" />
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {pet.type} - {pet.breed} <br />
-                Edad: {pet.age} años
-              </p>
-            </motion.div>
+              pet={pet}
+              onDelete={onDeletePet} // Pasamos onDelete recibido del Dashboard
+              currentUser={currentUser}
+            />
           ))}
         </div>
       )}
     </motion.div>
   );
-};
-
-export default PetsTab;
+}

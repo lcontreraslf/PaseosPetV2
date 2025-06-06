@@ -1,19 +1,15 @@
+// src/components/modals/LoginModal.jsx
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
-const GoogleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24" height="24" role="img" aria-label="Google Icon">
-    <path fill="#FFC107" d="..."/>
-    <path fill="#FF3D00" d="..."/>
-    <path fill="#4CAF50" d="..."/>
-    <path fill="#1976D2" d="..."/>
-  </svg>
-);
+// === ELIMINAMOS EL COMPONENTE GoogleIcon ===
+// Ya no es necesario definir GoogleIcon aquí, usamos una etiqueta <img>
+// === FIN DE LA ELIMINACIÓN ===
 
-export default function LoginModal({ onClose, onLogin, onGoogleLogin }) {
+export default function LoginModal({ onClose, onLogin, onGoogleLogin, onSwitchToRegister }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -49,7 +45,7 @@ export default function LoginModal({ onClose, onLogin, onGoogleLogin }) {
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.9, y: 20, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="relative bg-card rounded-2xl p-8 w-full max-w-md shadow-2xl border border-border"
+        className="relative bg-card rounded-2xl p-8 w-full max-w-md shadow-2xl border border-border" // Usando max-w-md para consistencia con RegisterModal
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="login-title" className="text-3xl font-bold text-center text-foreground mb-2">
@@ -138,18 +134,24 @@ export default function LoginModal({ onClose, onLogin, onGoogleLogin }) {
           type="button"
           variant="outline"
           onClick={onGoogleLogin}
+          // Mantenemos el className para el estilo blanco/gris y flexbox
           className="w-full py-3 border-border text-foreground/80 hover:bg-muted/50 flex items-center justify-center gap-2 rounded-lg shadow-sm hover:shadow-md"
           aria-label="Iniciar sesión con Google"
         >
-          <GoogleIcon />
+          {/* **** CAMBIO CLAVE AQUÍ: Usamos una etiqueta <img> para el ícono de Google **** */}
+          <img
+            src="https://img.icons8.com/color/48/000000/google-logo.png" // URL de un ícono de Google de alta calidad
+            alt="Google"
+            className="w-5 h-5" // Ajusta el tamaño de la imagen, sin mr-2 porque el gap lo maneja
+          />
           Iniciar Sesión con Google
         </Button>
 
         <p className="mt-8 text-center text-sm text-foreground/70">
           ¿No tienes una cuenta?{' '}
-          <a href="#" className="font-medium text-primary hover:underline">
+          <button onClick={onSwitchToRegister} className="font-medium text-primary hover:underline">
             Regístrate aquí
-          </a>
+          </button>
         </p>
 
         {/* Close button */}
