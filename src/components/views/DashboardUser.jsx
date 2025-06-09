@@ -4,83 +4,93 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { PawPrint, PlusCircle } from 'lucide-react';
+import { PawPrint, PlusCircle, Star } from 'lucide-react';
 
-// Importa el componente PetsTab que vamos a reutilizar como sección
+// Importaciones de componentes
 import PetsTab from '@/components/tabs/PetsTab';
-// Importamos PetCard, aunque PetsTab ya lo usa, se mantiene para claridad
-// import PetCard from '@/components/common/PetCard'; // No es estrictamente necesario aquí si PetsTab ya lo importa y usa.
-
-// También importamos el modal para agregar mascotas si se abre desde el Dashboard
 import AddPetModal from "@/components/modals/AddPetModal";
-// Importamos BookingModal si el Dashboard lo va a gestionar directamente
-// import BookingModal from "@/components/modals/BookingModal";
+import BookingModal from "@/components/modals/BookingModal";
+import ProfessionalProfileCard from '@/components/common/ProfessionalProfileCard';
+import PetAvatarCard from '@/components/common/PetAvatarCard';
 
 
-// Este Dashboard es para el usuario dueño de mascotas.
-export default function DashboardUser({ currentUser, pets, setPets, bookings, setBookings, onSelectWalker, setShowLogin, setShowBooking }) {
-  // El estado de 'showAddPet' y 'showBooking' se mantiene aquí en el Dashboard,
-  // ya que son parte de su UI directa.
+export default function DashboardUser({ currentUser, pets, setPets, bookings, setBookings, addPet, deletePet, createBooking, updateBookingStatus, setShowLogin }) {
+  // Estados internos del DashboardUser
   const [showAddPet, setShowAddPet] = useState(false);
-  const [selectedWalker, setSelectedWalker] = useState(null); // Para el BookingModal si se usa aquí
+  const [showBooking, setShowBooking] = useState(false);
+  const [selectedWalker, setSelectedWalker] = useState(null);
+  const [favoriteProfessionals, setFavoriteProfessionals] = useState([]);
+
+  // Lógica de carga/inicialización de profesionales favoritos
+  useEffect(() => {
+    const localStorageKey = "petcare_favorite_professionals";
+    const savedFavorites = localStorage.getItem(localStorageKey);
+    let initialFavoritesData = [];
+
+    // Cargar desde localStorage si existen y no están vacíos
+    if (savedFavorites) { // Solo si savedFavorites existe (no null)
+      try {
+        const parsedFavorites = JSON.parse(savedFavorites);
+        if (Array.isArray(parsedFavorites) && parsedFavorites.length > 0) { // Y es un array no vacío
+            initialFavoritesData = parsedFavorites;
+        }
+      } catch (e) {
+        console.error("Error parsing saved favorites from localStorage:", e);
+        // initialFavoritesData se mantendrá como [] si hay un error de parseo o no es un array válido
+      }
+    }
+
+    // Si después de intentar cargar, initialFavoritesData sigue vacío, entonces usa los datos dummy
+    if (initialFavoritesData.length === 0) {
+      initialFavoritesData = [
+        {
+          id: 101, // ID de María González (paseadora)
+          name: "María González", rating: 4.9, experience: "3 años", price: 15, location: "Centro",
+          services: ["Paseos", "Entrenamiento Básico"], avatar: "https://robohash.org/mariagonzalez?size=150x150&set=set4", reviews: 127, verified: true
+        },
+        {
+          id: 201, // ID de Ana López (cuidadora)
+          name: "Ana López", rating: 5.0, experience: "2 años", price: 12, location: "Sur",
+          services: ["Cuidado en casa", "Hospedaje nocturno"], avatar: "https://robohash.org/analopez?size=150x150&set=set4", reviews: 156, verified: true
+        },
+        { // Añadimos un tercer profesional favorito para asegurar 3 tarjetas
+          id: 103, // ID de Javier Soto (paseador)
+          name: "Javier Soto", rating: 4.7, experience: "4 años", price: 16, location: "Este",
+          services: ["Paseos", "Cuidado diurno"], avatar: "https://robohash.org/javiersoto?size=150x150&set=set4", reviews: 110, verified: false,
+        },
+      ];
+      localStorage.setItem(localStorageKey, JSON.stringify(initialFavoritesData));
+    }
+    setFavoriteProfessionals(initialFavoritesData);
+  }, []); // Dependencia vacía para que se ejecute solo una vez al montar
+
+  // Efecto para guardar favoritos en localStorage cada vez que cambian
+  useEffect(() => {
+    localStorage.setItem("petcare_favorite_professionals", JSON.stringify(favoriteProfessionals));
+  }, [favoriteProfessionals]); // Depende de favoriteProfessionals
 
 
-  // NOTA: La lógica de carga/guardado de 'pets' y 'bookings' ahora debería estar
-  // centralizada en App.jsx o en un hook/contexto global si se necesita en muchos lugares.
-  // Por ahora, PetsTab y BookingsTab gestionan parte de ello, y el Dashboard
-  // recibirá 'pets', 'setPets', 'bookings', 'setBookings' como props desde App.jsx.
+  // Derivación de datos para el usuario actual
+  const userPets = currentUser ? pets.filter(p => p.userId === currentUser.id) : [];
+  const userBookings = currentUser ? bookings.filter(b => b.userId === currentUser.id) : [];
 
-
-  const addPet = (petData) => {
+  // Manejador para seleccionar un profesional favorito y abrir el modal de reserva
+  const handleSelectFavoriteProfessional = (professional) => {
     if (!currentUser) {
+      setShowLogin(true); // Abre el modal de login si no hay usuario
       toast({
-        title: "Error",
-        description: "Debes iniciar sesión para agregar una mascota.",
+        title: "¡Inicia sesión!",
+        description: "Debes iniciar sesión para reservar servicios.",
         variant: "destructive",
       });
       return;
     }
-    const newPet = {
-      id: Date.now(),
-      ...petData,
-      createdAt: new Date().toISOString(),
-      userId: currentUser.id, // Asegura que la mascota se asocie al usuario
-    };
-    setPets([...pets, newPet]);
-    setShowAddPet(false);
-    toast({
-      title: "¡Mascota agregada!",
-      description: `${petData.name} ha sido agregada exitosamente.`,
-    });
-  };
-
-  const deletePet = (petId) => {
-    setPets(pets.filter((pet) => pet.id !== petId));
-    toast({
-      title: "Mascota eliminada",
-      description: "La mascota ha sido eliminada de tu perfil.",
-    });
-  };
-
-  // Esta función puede estar en App.jsx y pasarse, o si el dashboard la necesita para mostrar el estado.
-  const updateBookingStatus = (bookingId, status) => {
-    setBookings(
-      bookings.map((booking) =>
-        booking.id === bookingId ? { ...booking, status } : booking
-      )
-    );
-    toast({
-      title: "Estado actualizado",
-      description: `La reserva ha sido ${status === "confirmed" ? "confirmada" : "cancelada"}.`,
-    });
+    setSelectedWalker(professional); // Establece el profesional seleccionado
+    setShowBooking(true); // Abre el modal de reserva
+    toast({ title: "Profesional seleccionado", description: `Has seleccionado a ${professional.name}.` });
   };
 
 
-  const userPets = currentUser ? pets.filter(p => p.userId === currentUser.id) : [];
-  const userBookings = currentUser ? bookings.filter(b => b.userId === currentUser.id) : [];
-
-
-  // Esta es la parte más importante: renderizar PetsTab y BookingsTab (o sus contenidos)
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -89,28 +99,105 @@ export default function DashboardUser({ currentUser, pets, setPets, bookings, se
       className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8"
     >
       <h1 className="text-4xl font-extrabold text-foreground mb-8">
-        Bienvenido a tu Dashboard, {currentUser?.name || 'Usuario'}
+        Bienvenido a tu Dashboard, {currentUser?.name || 'usuario'}
       </h1>
 
       {/* Grid principal del Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Columna izquierda: Mis Mascotas (Ahora usando PetsTab directamente) */}
-        {/* PetsTab ahora gestiona su propia visualización y lógica de añadir/eliminar */}
-        {/* NOTA: PetsTab debería recibir 'pets', 'onAddPet', 'onDeletePet', 'currentUser' */}
-        <div className="lg:col-span-2">
-            <PetsTab
-                pets={userPets} // Le pasamos las mascotas ya filtradas por el usuario
-                onAddPet={() => setShowAddPet(true)} // Abrir AddPetModal desde el Dashboard
+        {/* Columna izquierda: Mis Mascotas y Favoritos */}
+        <div className="lg:col-span-2 space-y-8"> {/* Clase lg:col-span-2 para ocupar 2/3 del ancho */}
+
+          {/* Sección de Mis Mascotas */}
+          <div className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-foreground flex items-center">
+                <PawPrint className="w-6 h-6 mr-2 text-primary" />
+                Mis Mascotas
+              </h2>
+              <Button
+                onClick={() => {
+                  if (!currentUser) {
+                    setShowLogin(true);
+                    toast({
+                      title: "Inicia sesión",
+                      description: "Debes iniciar sesión para agregar mascotas.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  setShowAddPet(true);
+                }}
+                className="bg-primary hover:bg-primary-dark text-primary-foreground"
+              >
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Agregar Mascota
+              </Button>
+            </div>
+
+            {/* Renderizado condicional: Tarjetas de avatar o la lista de mascotas */}
+            {userPets.length === 0 ? (
+              <div className="space-y-6">
+                {/* === ELIMINADO EL MENSAJE "No tienes mascotas registradas" SEGÚN TU SOLICITUD === */}
+                {/* Se mantiene el div contenedor para las cards y el espaciado */}
+                <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+                  {/* Utilizando las URLs de RoboHash que ya te funcionaban */}
+                  <PetAvatarCard imageUrl="https://robohash.org/schnauzer?set=set4&size=80x80" name="Schnauzer" />
+                  <PetAvatarCard imageUrl="https://robohash.org/gato?set=set4&size=80x80" name="Gato" />
+                  <PetAvatarCard imageUrl="https://robohash.org/tortuga?set=set4&size=80x80" name="Tortuga" />
+                </div>
+              </div>
+            ) : (
+              <PetsTab
+                pets={userPets}
+                onAddPet={() => setShowAddPet(true)}
                 onDeletePet={deletePet}
                 currentUser={currentUser}
-                isDashboardSection={true} // Un nuevo prop para que PetsTab sepa que está en el dashboard
-            />
+                isDashboardSection={true}
+              />
+            )}
+          </div>
+
+          {/* Sección de Profesionales Favoritos */}
+          <div className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg space-y-6">
+            <h2 className="text-2xl font-bold text-foreground flex items-center">
+              <Star className="w-6 h-6 mr-2 text-yellow-500" />
+              Mis Profesionales Favoritos
+            </h2>
+            {/* Aquí es donde se renderizarán las tarjetas de favoritos */}
+            {favoriteProfessionals.length === 0 ? (
+              <p className="text-foreground/70 text-center py-8 border border-dashed border-border rounded-lg">
+                Aún no has marcado profesionales como favoritos.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> {/* Asegurado sm:grid-cols-2 para 2 columnas en sm+ */}
+                {favoriteProfessionals.map((professional) => (
+                  <ProfessionalProfileCard
+                    key={professional.id}
+                    person={professional}
+                    onActionClick={handleSelectFavoriteProfessional}
+                    currentUser={currentUser}
+                    pets={userPets}
+                    actionButtonText={
+                        professional.services.includes("Paseos") ? "Agendar Paseo" :
+                        (professional.services.includes("Cuidado en casa") || professional.services.includes("Hospedaje")) ? "Reservar Cuidador" :
+                        "Reservar"
+                    }
+                    priceUnit={
+                        professional.services.includes("Paseos") ? "/hora" :
+                        (professional.services.includes("Cuidado en casa") || professional.services.includes("Hospedaje")) ? "/día" :
+                        ""
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
 
-
-        {/* Columna derecha: Reservas y Otros (ocupa 1 columna en pantallas grandes) */}
-        <div className="lg:col-span-1 space-y-8">
-          {/* Sección de Reservas (puedes adaptar BookingsTab o crear un componente más simple) */}
+        {/* Columna derecha: Reservas y Otros */}
+        <div className="lg:col-span-1 space-y-8"> {/* Clase lg:col-span-1 para ocupar 1/3 del ancho */}
+          {/* Sección de Reservas */}
           <div className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg space-y-4">
             <h2 className="text-2xl font-bold text-foreground">
               Tus Próximas Reservas
@@ -120,23 +207,29 @@ export default function DashboardUser({ currentUser, pets, setPets, bookings, se
                 No tienes reservas activas.
               </p>
             ) : (
-              // Aquí puedes renderizar una versión simplificada de BookingsTab
-              // o un componente 'BookingCard' para cada reserva.
               <ul className="space-y-3">
-                {userBookings.slice(0, 3).map(booking => ( // Mostrar solo las 3 primeras
-                  <li key={booking.id} className="bg-muted/30 p-3 rounded-lg flex items-center justify-between text-sm">
-                    <span>
-                      {booking.petName} con {booking.walkerName} - {new Date(booking.date).toLocaleDateString()}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {booking.status}
-                    </span>
-                  </li>
-                ))}
+                {userBookings.slice(0, 3).map(booking => {
+                  const { dismiss, ...restOfBookingProps } = booking; 
+
+                  return (
+                    <li
+                      key={restOfBookingProps.id}
+                      className="bg-muted/30 p-3 rounded-lg flex items-center justify-between text-sm"
+                      {...(dismiss !== undefined && { 'data-dismiss': dismiss })} 
+                    >
+                      <span>
+                        {restOfBookingProps.petName} con {restOfBookingProps.walkerName} - {new Date(restOfBookingProps.date).toLocaleDateString()}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        restOfBookingProps.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        restOfBookingProps.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {restOfBookingProps.status}
+                      </span>
+                    </li>
+                  );
+                })}
                 {userBookings.length > 3 && (
                   <Button variant="link" className="w-full">Ver todas las reservas</Button>
                 )}
@@ -175,6 +268,7 @@ export default function DashboardUser({ currentUser, pets, setPets, bookings, se
         </div>
       </div>
 
+      {/* Modales que se abren desde el Dashboard */}
       <AnimatePresence>
         {showAddPet && currentUser && (
           <AddPetModal
@@ -182,18 +276,17 @@ export default function DashboardUser({ currentUser, pets, setPets, bookings, se
             onAdd={addPet}
           />
         )}
-        {/* Si BookingModal se va a abrir desde el Dashboard, también debe estar aquí */}
-        {/* {showBooking && selectedWalker && currentUser && (
+        {showBooking && selectedWalker && currentUser && (
           <BookingModal
             walker={selectedWalker}
-            pets={userPets} // Pasa las mascotas del usuario
+            pets={userPets}
             onClose={() => {
               setShowBooking(false);
               setSelectedWalker(null);
             }}
-            onBook={createBooking} // Necesitarías definir createBooking en el Dashboard si la usas aquí
+            onBook={createBooking}
           />
-        )} */}
+        )}
       </AnimatePresence>
     </motion.div>
   );

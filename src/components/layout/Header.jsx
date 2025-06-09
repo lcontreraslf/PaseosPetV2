@@ -2,12 +2,10 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PawPrint, LogIn, Menu, X } from 'lucide-react'; // 'User' ya no es necesario aquí directamente
+import { PawPrint, LogIn, Menu, X, LayoutDashboard, LogOut } from 'lucide-react'; // Asegúrate de que los iconos estén importados
 import { Button } from '@/components/ui/button';
+import UserProfileNav from '@/components/layout/UserProfileNav'; // Ya debería estar importado
 
-import UserProfileNav from '@/components/layout/UserProfileNav'; // ¡IMPORTAMOS EL NUEVO COMPONENTE DE NAVEGACIÓN DE PERFIL!
-
-// Se añade onNavigateToDashboard para la navegación al Dashboard
 export default function Header({ navItems, activeTab, setActiveTab, currentUser, setShowLogin, setShowRegister, handleLogout, onNavigateToDashboard }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -15,9 +13,9 @@ export default function Header({ navItems, activeTab, setActiveTab, currentUser,
     <header className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          {/* Logo - Ahora es clicable para ir a "Inicio" */}
           <motion.div
-            className="flex items-center space-x-2 cursor-pointer" // Añadido cursor-pointer
+            className="flex items-center space-x-2 cursor-pointer"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => setActiveTab("home")} // Al hacer clic en el logo, va a Home
@@ -48,13 +46,12 @@ export default function Header({ navItems, activeTab, setActiveTab, currentUser,
           </nav>
 
           {/* Desktop Auth/Profile Buttons */}
-          <div className="hidden md:flex space-x-2 items-center"> {/* Añadido items-center para alinear */}
+          <div className="hidden md:flex space-x-2 items-center">
             {currentUser ? (
-              // Usar el nuevo componente UserProfileNav cuando el usuario está conectado
               <UserProfileNav
                 currentUser={currentUser}
                 handleLogout={handleLogout}
-                onNavigateToDashboard={onNavigateToDashboard} // Pasa la función para navegar al dashboard
+                onNavigateToDashboard={onNavigateToDashboard}
               />
             ) : (
               <div className="flex space-x-2">
@@ -94,6 +91,7 @@ export default function Header({ navItems, activeTab, setActiveTab, currentUser,
             exit={{ height: 0, opacity: 0 }}
             className="md:hidden bg-card border-t border-border px-4 pt-4 pb-6 space-y-4"
           >
+            {/* Iterar sobre navItems para el menú móvil */}
             {navItems.map((tab) => (
               <button
                 key={tab.id}
@@ -112,12 +110,12 @@ export default function Header({ navItems, activeTab, setActiveTab, currentUser,
             ))}
 
             {currentUser ? (
-              // Menú móvil del perfil cuando el usuario está conectado
+              // Opciones de perfil y autenticación para el menú móvil (usuario logueado)
               <>
                 <button
                   onClick={() => {
-                    onNavigateToDashboard(); // Navegar al dashboard
-                    setMobileMenuOpen(false); // Cerrar menú móvil
+                    onNavigateToDashboard();
+                    setMobileMenuOpen(false);
                   }}
                   className={`block w-full text-left text-sm px-3 py-2 rounded-md ${
                     activeTab === 'dashboard' ? 'text-primary bg-green-100' : 'text-foreground/70 hover:text-primary'
@@ -137,6 +135,7 @@ export default function Header({ navItems, activeTab, setActiveTab, currentUser,
                 </Button>
               </>
             ) : (
+              // Opciones de autenticación para el menú móvil (usuario no logueado)
               <>
                 <Button
                   onClick={() => {

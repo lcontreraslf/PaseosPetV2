@@ -1,3 +1,5 @@
+// src/components/tabs/BookingsTab.jsx
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -58,7 +60,8 @@ export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, c
         </div>
       ) : (
         <div className="space-y-4">
-          {bookings.map((booking, index) => {
+          {bookings.map((bookingRaw, index) => {
+            const { dismiss, ...booking } = bookingRaw; // Filtrado aquí
             const walker = getWalkerById(booking.walkerId);
             const pet = getPetById(booking.petId);
 
@@ -71,7 +74,6 @@ export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, c
                 className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
               >
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  {/* Info principal */}
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-bold text-foreground">
@@ -84,7 +86,6 @@ export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, c
                       </span>
                     </div>
 
-                    {/* Datos del paseo */}
                     <div className="grid md:grid-cols-2 gap-4 text-sm text-foreground/80">
                       <div className="space-y-2">
                         <div className="flex items-center">
@@ -108,7 +109,6 @@ export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, c
                       </div>
                     </div>
 
-                    {/* Servicio y notas */}
                     {booking.service && (
                       <div className="mt-3">
                         <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
@@ -125,7 +125,6 @@ export default function BookingsTab({ bookings, walkers, pets, onUpdateStatus, c
                     )}
                   </div>
 
-                  {/* Acciones */}
                   {booking.status === 'pending' && (
                     <div className="flex gap-2">
                       <Button

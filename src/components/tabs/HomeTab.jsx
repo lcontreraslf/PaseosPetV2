@@ -38,12 +38,14 @@ const features = [
   },
 ];
 
-const stats = [
-  { number: '10,000+', label: 'Mascotas Felices' },
-  { number: '500+', label: 'Cuidadores Activos' },
-  { number: '50,000+', label: 'Paseos Realizados' },
-  { number: '4.9★', label: 'Calificación Promedio' },
-];
+// === ELIMINADA: La constante stats ===
+// const stats = [
+//   { number: '10,000+', label: 'Mascotas Felices' },
+//   { number: '500+', label: 'Cuidadores Activos' },
+//   { number: '50,000+', label: 'Paseos Realizados' },
+//   { number: '4.9★', label: 'Calificación Promedio' },
+// ];
+// === FIN DE LA ELIMINACIÓN ===
 
 export default function HomeTab({ onFindWalkerClick }) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -150,8 +152,8 @@ export default function HomeTab({ onFindWalkerClick }) {
         ))}
       </section>
 
-      {/* Estadísticas */}
-      <section className="bg-gradient-to-r from-gray-800 to-black rounded-3xl p-12 text-white">
+      {/* === ELIMINADA: Sección de Estadísticas === */}
+      {/* <section className="bg-gradient-to-r from-gray-800 to-black rounded-3xl p-12 text-white">
         <div className="grid md:grid-cols-4 gap-8 text-center">
           {stats.map((stat, index) => (
             <motion.div
@@ -165,7 +167,8 @@ export default function HomeTab({ onFindWalkerClick }) {
             </motion.div>
           ))}
         </div>
-      </section>
+      </section> */}
+      {/* === FIN DE LA ELIMINACIÓN === */}
     </motion.div>
   );
 }

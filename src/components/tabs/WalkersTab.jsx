@@ -1,14 +1,14 @@
 // src/components/tabs/WalkersTab.jsx
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Search } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import ProfessionalProfileCard from '@/components/common/ProfessionalProfileCard'; // ¡IMPORTACIÓN ACTUALIZADA!
+import ProfessionalProfileCard from "@/components/common/ProfessionalProfileCard";
 
 export default function WalkersTab({ pets, onSelectWalker, currentUser }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
   const [walkers, setWalkers] = useState([]);
 
   useEffect(() => {
@@ -20,26 +20,62 @@ export default function WalkersTab({ pets, onSelectWalker, currentUser }) {
       initialWalkersData = JSON.parse(savedWalkers);
     } else {
       initialWalkersData = [
-        { id: 101, name: "María González", rating: 4.9, experience: "3 años", price: 15, location: "Centro", services: ["Paseos", "Entrenamiento Básico"], avatar: "https://images.unsplash.com/photo-1494790108375-2616b612b786?w=150&h=150&fit=crop&crop=face", reviews: 127, verified: true },
-        { id: 102, name: "Carlos Ruiz", rating: 4.8, experience: "5 años", price: 18, location: "Norte", services: ["Paseos", "Entrenamiento Avanzado"], avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face", reviews: 89, verified: true },
-        { id: 103, name: "Javier Soto", rating: 4.7, experience: "4 años", price: 16, location: "Este", services: ["Paseos", "Cuidado diurno"], avatar: "https://images.unsplash.com/photo-1599566150163-29194d693677?w=150&h=150&fit=crop&crop=face", reviews: 110, verified: false },
+        {
+          id: 101,
+          name: "María González",
+          rating: 4.9,
+          experience: "3 años",
+          price: 15,
+          location: "Centro",
+          services: ["Paseos", "Entrenamiento Básico"],
+          avatar: "https://placekitten.com/151/151",
+          reviews: 127,
+          verified: true,
+        },
+        {
+          id: 102,
+          name: "Carlos Ruiz",
+          rating: 4.8,
+          experience: "5 años",
+          price: 18,
+          location: "Norte",
+          services: ["Paseos", "Entrenamiento Avanzado"],
+          avatar: "https://placekitten.com/152/152",
+          reviews: 89,
+          verified: true,
+        },
+        {
+          id: 103,
+          name: "Javier Soto",
+          rating: 4.7,
+          experience: "4 años",
+          price: 16,
+          location: "Este",
+          services: ["Paseos", "Cuidado diurno"],
+          avatar: "https://placekitten.com/153/153",
+          reviews: 110,
+          verified: false,
+        },
       ];
+
       localStorage.setItem(localStorageKey, JSON.stringify(initialWalkersData));
     }
+
     setWalkers(initialWalkersData);
   }, []);
 
-  const filteredWalkers = walkers.filter(walker => {
+  const filteredWalkers = walkers.filter((walker) => {
     const matchesSearch =
       walker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      walker.services.some(service =>
+      walker.services.some((service) =>
         service.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    const matchesLocation = !selectedLocation || walker.location === selectedLocation;
+    const matchesLocation =
+      !selectedLocation || walker.location === selectedLocation;
     return matchesSearch && matchesLocation;
   });
 
-  const locations = [...new Set(walkers.map(w => w.location))].sort();
+  const locations = [...new Set(walkers.map((w) => w.location))].sort();
   const tabTitle = "Paseadores Disponibles";
 
   return (
@@ -71,8 +107,10 @@ export default function WalkersTab({ pets, onSelectWalker, currentUser }) {
             aria-label="Filtrar por zona"
           >
             <option value="">Todas las zonas</option>
-            {locations.map(location => (
-              <option key={location} value={location}>{location}</option>
+            {locations.map((location) => (
+              <option key={location} value={location}>
+                {location}
+              </option>
             ))}
           </select>
         </div>
@@ -81,7 +119,7 @@ export default function WalkersTab({ pets, onSelectWalker, currentUser }) {
       {/* Tarjetas de paseadores usando ProfessionalProfileCard */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredWalkers.map((walker) => (
-          <ProfessionalProfileCard // ¡COMPONENTE DE TARJETA ACTUALIZADO!
+          <ProfessionalProfileCard
             key={walker.id}
             person={walker}
             onActionClick={onSelectWalker}

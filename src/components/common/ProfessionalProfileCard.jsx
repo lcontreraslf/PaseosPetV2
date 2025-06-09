@@ -1,4 +1,3 @@
-// src/components/common/ProfessionalProfileCard.jsx
 
 import React from 'react';
 import { motion } from 'framer-motion';
@@ -8,13 +7,7 @@ import {
   Calendar, MessageCircle, CheckCircle
 } from 'lucide-react';
 
-// Este componente genérico renderiza una tarjeta de perfil para profesionales (paseadores o cuidadores).
-// Recibe un objeto 'person' con sus datos y un 'actionButtonText' para personalizar el botón.
 export default function ProfessionalProfileCard({ person, onActionClick, currentUser, pets, actionButtonText = "Ver Perfil", priceUnit = "/hora" }) {
-  // Las 'props' que espera 'person' deben ser consistentes con tus datos de paseadores/cuidadores:
-  // { id, name, rating, experience, price, location, services, avatar, reviews, verified }
-
-  // Determinar si el botón de acción debe estar deshabilitado
   const isButtonDisabled = !currentUser || pets.length === 0;
   const alertMessage = !currentUser ? "Inicia sesión para poder reservar." : (pets.length === 0 ? "Agrega una mascota para poder reservar." : null);
 
@@ -25,7 +18,6 @@ export default function ProfessionalProfileCard({ person, onActionClick, current
       animate={{ opacity: 1, scale: 1 }}
       className="bg-card/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg transition-all duration-300 pet-card-hover"
     >
-      {/* Encabezado con foto */}
       <div className="flex items-center mb-4">
         <img
           src={person.avatar}
@@ -48,7 +40,6 @@ export default function ProfessionalProfileCard({ person, onActionClick, current
         </div>
       </div>
 
-      {/* Datos */}
       <div className="space-y-3 mb-4 text-sm text-foreground/80">
         <div className="flex items-center">
           <MapPin className="w-4 h-4 mr-2 text-primary" />
@@ -60,11 +51,10 @@ export default function ProfessionalProfileCard({ person, onActionClick, current
         </div>
         <div className="flex items-center">
           <DollarSign className="w-4 h-4 mr-2 text-primary" />
-          <span>${person.price}{priceUnit}</span> {/* Unidad de precio dinámica */}
+          <span>${person.price}{priceUnit}</span>
         </div>
       </div>
 
-      {/* Servicios */}
       <div className="mb-4">
         <p className="text-sm font-medium text-foreground/90 mb-2">Servicios:</p>
         <div className="flex flex-wrap gap-2">
@@ -79,11 +69,10 @@ export default function ProfessionalProfileCard({ person, onActionClick, current
         </div>
       </div>
 
-      {/* Acciones */}
       <div className="flex gap-2">
         <Button
           className="flex-1 bg-gradient-to-r from-primary to-green-600 text-primary-foreground"
-          onClick={() => onActionClick(person)} // Función de acción dinámica
+          onClick={() => onActionClick(person)}
           disabled={isButtonDisabled}
           aria-label={actionButtonText}
         >
@@ -100,7 +89,6 @@ export default function ProfessionalProfileCard({ person, onActionClick, current
         </Button>
       </div>
 
-      {/* Alertas */}
       {alertMessage && (
         <p className="text-xs text-red-500 mt-2 text-center">
           {alertMessage}
